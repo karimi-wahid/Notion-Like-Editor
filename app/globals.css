@@ -1,26 +1,140 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+.ProseMirror h1 {
+  font-size: 32px;
+}
+.ProseMirror h2 {
+  font-size: 24px;
+}
+.ProseMirror h3 {
+  font-size: 20px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.ProseMirror a {
+  text-decoration: underline;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.ProseMirror ol {
+  list-style: decimal;
+  margin-left: 50px;
+}
+.ProseMirror ul {
+  list-style: disc;
+  margin-left: 50px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.ProseMirror ul[data-type="taskList"] li {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ProseMirror blockquote {
+  border-left: 1px solid black;
+  padding-left: 5px;
+}
+.ProseMirror blockquote code {
+  background-color: #f5f5f5;
+  color: #d6336c;
+  font-family: "Fira Mono", "Consolas", "Monaco", monospace;
+  font-size: 0.95em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
+
+/* Tiptap placeholder style */
+.ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  color: #a0aec0;
+  font-style: italic;
+  pointer-events: none;
+  height: 0;
+  display: block;
+}
+
+/* Tiptap table base styles */
+.ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  background: #fff;
+  table-layout: fixed; /* Required for resizing */
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid #ddd4d4;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.ProseMirror th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+
+.ProseMirror tr:nth-child(even) td {
+  background: #f9fafb;
+}
+
+/* Column resize handle styles */
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #3b82f6; /* blue-500 */
+  cursor: col-resize;
+  z-index: 10;
+}
+
+/* While dragging the column */
+.resize-cursor {
+  cursor: col-resize !important;
+}
+
+.ProseMirror table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db; /* Tailwind slate-300 */
+  word-break: break-word;
+  min-width: 100px;
+}
+
+.ProseMirror table-wrapper {
+  overflow-x: auto;
+}
+
+.btnTable {
+  @apply flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-sm px-3 py-1 rounded transition;
+}
+
+/* Custom Scrollbar Styling */
+.scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background-color: #999;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #666;
 }
