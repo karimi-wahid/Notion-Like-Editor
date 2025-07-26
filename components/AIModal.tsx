@@ -20,6 +20,8 @@ const AIModal: React.FC<AIModalProps> = ({
   const aiBoxRef = useRef<HTMLDivElement | null>(null);
   const [showWhichModal, setShowWhichModal] = useState(true);
   const [hideAIOptions, setHideAIOptions] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [showInputLoader, setShowInputLoader] = useState(false);
 
   const editOptions = [
     {
@@ -135,6 +137,12 @@ const AIModal: React.FC<AIModalProps> = ({
     };
   }, [setShowAIModal, scrollButtonRef]);
 
+  useEffect(() => {
+    if (!showWhichModal) {
+      setShowInputLoader(false);
+    }
+  }, [showWhichModal]);
+
   return (
     <div
       ref={aiBoxRef}
@@ -142,44 +150,78 @@ const AIModal: React.FC<AIModalProps> = ({
       style={{
         width: editorWidth || 600,
       }}>
+      {/* Mock AI suggestion */}
+      {!showWhichModal && (
+        <div className="w-full px-2 py-2 bg-white text-blue-800 font-medium text-sm">
+          The Content has been changed by AI
+        </div>
+      )}
+
       {/* Input Section */}
       <div className="relative w-full px-2 py-2 bg-white">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Ask AI to edit or generate..."
+          placeholder={
+            showInputLoader ? "Loading..." : "Ask AI to edit or generate..."
+          }
           className="w-full border border-gray-300 placeholder:text-gray-400 placeholder:text-[14px] text-gray-800 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled={loading || showInputLoader}
         />
         <button
           className="absolute right-4 top-[50%] translate-y-[-50%] h-8 w-8 bg-black hover:bg-black/70 rounded-md flex items-center justify-center transition-colors"
-          onClick={() => {
-            if (editor) {
-              editor
-                .chain()
-                .focus()
-                .insertContentAt(
-                  {
-                    from: editor.state.selection.from,
-                    to: editor.state.selection.to,
-                  },
-                  "The Content has been changed by ai"
-                )
-                .run();
-            }
-          }}>
-          <svg
-            className="w-4 h-4 text-white rotate-90"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 15l7-7 7 7"
-            />
-          </svg>
+          onClick={async () => {
+            if (!editor || loading) return;
+            setLoading(true);
+            // Simulate AI processing delay
+            await new Promise((res) => setTimeout(res, 1500));
+            editor
+              .chain()
+              .focus()
+              .insertContentAt(
+                {
+                  from: editor.state.selection.from,
+                  to: editor.state.selection.to,
+                },
+                "The Content has been changed by ai"
+              )
+              .run();
+            setLoading(false);
+          }}
+          disabled={loading || showInputLoader}>
+          {loading || showInputLoader ? (
+            // Simple spinner
+            <svg
+              className="animate-spin w-4 h-4 text-white"
+              fill="none"
+              viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+          ) : (
+            <svg
+              className="w-4 h-4 text-white rotate-90"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 15l7-7 7 7"
+              />
+            </svg>
+          )}
         </button>
       </div>
 
@@ -193,9 +235,16 @@ const AIModal: React.FC<AIModalProps> = ({
               <div>
                 {editOptions.map((option, index) => (
                   <button
-                    onClick={() => changeModal()}
+                    onClick={async () => {
+                      changeModal();
+                      if (loading || showInputLoader) return;
+                      setShowInputLoader(true);
+                      // Simulate AI processing delay
+                      await new Promise((res) => setTimeout(res, 1500));
+                    }}
                     key={index}
-                    className="w-full flex items-center justify-start text-left p-1 cursor-pointer hover:bg-gray-200 text-gray-600 hover:text-gray-900 rounded-md transition-colors">
+                    className="w-full flex items-center justify-start text-left p-1 cursor-pointer hover:bg-gray-200 text-gray-600 hover:text-gray-900 rounded-md transition-colors"
+                    disabled={loading || showInputLoader}>
                     <span className={`mr-3 ${option.color}`}>
                       {option.icon}
                     </span>

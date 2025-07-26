@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import {
@@ -26,7 +26,7 @@ import {
 } from "react-icons/fa";
 import Select from "./Select";
 import LinkDropdown from "./LinkDropdown";
-import { GiRobotGolem } from "react-icons/gi";
+import { HiOutlineSparkles } from "react-icons/hi";
 
 interface BubbleMenusProps {
   editor: Editor;
@@ -43,15 +43,23 @@ const BubbleMenus: React.FC<BubbleMenusProps> = ({
   const [selectedText, setSelectedText] = useState<any>(LuLetterText);
   const [editorState, setEditorState] = useState(0);
   const [showBubbleMenu, setShowBubbleMenu] = useState(true);
+  const prevSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
   useEffect(() => {
     if (!editor) return;
-    const forceRerender = () => setEditorState((prev) => prev + 1);
-    editor.on("selectionUpdate", forceRerender);
-    editor.on("transaction", forceRerender);
+    const onSelectionUpdate = () => {
+      const { from, to } = editor.state.selection;
+      const prev = prevSelectionRef.current;
+      // Only show if selection is new and not empty
+      if (!prev || prev.from !== from || prev.to !== to) {
+        setShowBubbleMenu(true);
+      }
+      prevSelectionRef.current = { from, to };
+      setEditorState((prev) => prev + 1);
+    };
+    editor.on("selectionUpdate", onSelectionUpdate);
     return () => {
-      editor.off("selectionUpdate", forceRerender);
-      editor.off("transaction", forceRerender);
+      editor.off("selectionUpdate", onSelectionUpdate);
     };
   }, [editor]);
 
@@ -171,11 +179,11 @@ const BubbleMenus: React.FC<BubbleMenusProps> = ({
   return (
     <BubbleMenu
       editor={editor}
-      shouldShow={({ editor }) =>
-        showBubbleMenu && !editor.state.selection.empty
-      }
+      shouldShow={({ editor }) => !editor.state.selection.empty}
       options={{ placement: "top-start", offset: 4 }}
-      className="bg-white rounded-xl px-3 py-1 shadow-lg border border-gray-200">
+      className={`bg-white rounded-xl px-3 py-1 shadow-lg border border-gray-200 ${
+        !showBubbleMenu ? "hidden" : ""
+      }`}>
       <div className="flex items-center gap-4 w-fit">
         <div className="flex items-center gap-3 border-r border-gray-200 pr-4">
           <button
@@ -193,7 +201,7 @@ const BubbleMenus: React.FC<BubbleMenusProps> = ({
             }}
             className="text-sm px-2 py-1 rounded hover:bg-gray-100 transition flex items-center gap-2 cursor-pointer">
             <span>
-              <GiRobotGolem />
+              <HiOutlineSparkles size={16} className="text-purple-500" />
             </span>
             Ask AI
           </button>
