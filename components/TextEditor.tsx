@@ -131,7 +131,7 @@ const TextEditor = () => {
     editorProps: {
       attributes: {
         class:
-          "min-h-[500px] w-[800px] border border-slate-300 rounded-md outline-none py-2 px-3 overflow-x-auto max-w-full",
+          "tiptap-block-gap min-h-[500px] w-[800px] border border-slate-300 rounded-md outline-none py-2 px-3 overflow-x-auto max-w-full",
       },
     },
   });
@@ -235,9 +235,18 @@ const TextEditor = () => {
         className="cursor-grabbing items-center flex pr-3 space-x-1">
         <button
           type="button"
-          onClick={() =>
-            editor?.chain().focus().splitBlock().insertContent("/").run()
-          }
+          onClick={() => {
+            if (!editor) return;
+            const { state } = editor;
+            const { $from } = state.selection;
+            editor
+              .chain()
+              .focus()
+              .setTextSelection($from.end()) // Move cursor to end of block
+              .splitBlock()
+              .insertContent("/")
+              .run();
+          }}
           className="text-gray-400 hover:bg-gray-100 rounded transition cursor-pointer"
           title="Insert slash command">
           <FaPlus size={15} />

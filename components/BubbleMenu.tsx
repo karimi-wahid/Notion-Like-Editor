@@ -44,6 +44,24 @@ const BubbleMenus: React.FC<BubbleMenusProps> = ({
   const [editorState, setEditorState] = useState(0);
   const [showBubbleMenu, setShowBubbleMenu] = useState(true);
   const prevSelectionRef = useRef<{ from: number; to: number } | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showText) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowText(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [showText]);
 
   useEffect(() => {
     if (!editor) return;
@@ -206,7 +224,7 @@ const BubbleMenus: React.FC<BubbleMenusProps> = ({
             Ask AI
           </button>
         </div>
-        <div className="relative flex items-center gap-2">
+        <div className="relative flex items-center gap-2" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setShowText((v) => !v)}

@@ -138,3 +138,17 @@
 .scroll::-webkit-scrollbar-thumb:hover {
   background-color: #666;
 }
+
+/* Add vertical margin between paragraphs, headings, lists, etc. */
+.tiptap-block-gap p,
+.tiptap-block-gap h1,
+.tiptap-block-gap h2,
+.tiptap-block-gap h3,
+.tiptap-block-gap ul,
+.tiptap-block-gap ol,
+.tiptap-block-gap blockquote,
+.tiptap-block-gap pre,
+.tiptap-block-gap table {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+}
