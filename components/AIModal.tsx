@@ -105,6 +105,20 @@ const AIModal: React.FC<AIModalProps> = ({
     }, 3000);
   };
 
+  const handleAISubmit = async () => {
+    setLoading(true);
+    setShowInputLoader(true);
+    setShowWhichModal(true); // Show options while loading
+
+    // Simulate AI request delay
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // After "AI" responds, show ActionMenu
+    setShowWhichModal(false);
+    setShowInputLoader(false);
+    setLoading(false);
+  };
+
   useEffect(() => {
     function handleOutsideClick(e: MouseEvent) {
       if (!aiBoxRef.current) return;
@@ -172,22 +186,9 @@ const AIModal: React.FC<AIModalProps> = ({
         <button
           className="absolute right-4 top-[50%] translate-y-[-50%] h-8 w-8 bg-black hover:bg-black/70 rounded-md flex items-center justify-center transition-colors"
           onClick={async () => {
-            if (!editor || loading) return;
-            setLoading(true);
-            // Simulate AI processing delay
-            await new Promise((res) => setTimeout(res, 1500));
-            editor
-              .chain()
-              .focus()
-              .insertContentAt(
-                {
-                  from: editor.state.selection.from,
-                  to: editor.state.selection.to,
-                },
-                "The Content has been changed by ai"
-              )
-              .run();
-            setLoading(false);
+            changeModal();
+            if (loading || showInputLoader) return;
+            setShowInputLoader(true);
           }}
           disabled={loading || showInputLoader}>
           {loading || showInputLoader ? (
@@ -239,8 +240,6 @@ const AIModal: React.FC<AIModalProps> = ({
                       changeModal();
                       if (loading || showInputLoader) return;
                       setShowInputLoader(true);
-                      // Simulate AI processing delay
-                      await new Promise((res) => setTimeout(res, 1500));
                     }}
                     key={index}
                     className="w-full flex items-center justify-start text-left p-1 cursor-pointer hover:bg-gray-200 text-gray-600 hover:text-gray-900 rounded-md transition-colors"
@@ -284,6 +283,7 @@ const AIModal: React.FC<AIModalProps> = ({
           setShowAIModal={setShowAIModal}
           editor={editor}
           aiSuggestion={"The Content has been changed by AI"}
+          onTryAgain={handleAISubmit}
         />
       )}
     </div>

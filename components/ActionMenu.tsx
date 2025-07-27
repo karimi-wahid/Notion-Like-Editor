@@ -44,10 +44,12 @@ export default function ActionMenu({
   setShowAIModal,
   editor,
   aiSuggestion,
+  onTryAgain,
 }: {
   setShowAIModal: React.Dispatch<React.SetStateAction<boolean>>;
   editor: any;
   aiSuggestion: any;
+  onTryAgain?: () => void;
 }) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
@@ -66,22 +68,26 @@ export default function ActionMenu({
             aiSuggestion
           )
           .run();
+        setShowAIModal(false);
         break;
       case "discard":
+        setShowAIModal(false);
         // Do nothing, just close
         break;
       case "insert":
         // Insert AI suggestion as new paragraph below
         editor.chain().focus().splitBlock().insertContent(aiSuggestion).run();
+        setShowAIModal(false);
         break;
       case "try-again":
+        if (onTryAgain) onTryAgain();
         // You can trigger AI again or show a toast
         // For now, just close
         break;
       default:
+        setShowAIModal(false);
         break;
     }
-    setShowAIModal(false);
   };
 
   return (

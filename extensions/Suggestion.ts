@@ -225,28 +225,36 @@ export default {
             title: "Align Left",
             icon: FaAlignLeft,
             command: ({ editor, range }: any) => {
-              const chain = editor.chain().focus();
-              if (range) chain.deleteRange(range);
-              chain.setTextAlign("left").run();
+              editor
+                .chain()
+                .focus()
+                .deleteRange(range)
+                .setTextAlign("left")
+                .run();
             },
           },
           {
             title: "Align Center",
             icon: FaAlignJustify,
             command: ({ editor, range }: any) => {
-              const chain = editor.chain().focus();
-              if (range) chain.deleteRange(range);
-              chain.setTextAlign("center").run();
+              editor
+                .chain()
+                .focus()
+                .deleteRange(range)
+                .setTextAlign("center")
+                .run();
             },
           },
-
           {
             title: "Align Right",
             icon: FaAlignRight,
             command: ({ editor, range }: any) => {
-              const chain = editor.chain().focus();
-              if (range) chain.deleteRange(range);
-              chain.setTextAlign("right").run();
+              editor
+                .chain()
+                .focus()
+                .deleteRange(range)
+                .setTextAlign("right")
+                .run();
             },
           },
         ],
@@ -393,20 +401,6 @@ export default {
                 .run();
             },
           },
-          {
-            title: "Insert Chart",
-            icon: MdBarChart, // from react-icons
-            command: ({ editor, range }) => {
-              editor
-                .chain()
-                .focus()
-                .deleteRange(range)
-                .insertContent({
-                  type: "chartBlock",
-                })
-                .run();
-            },
-          },
         ],
       },
     ];
@@ -455,7 +449,11 @@ export default {
           reactRenderer?.destroy();
           return true;
         }
-
+        // Prevent default Enter behavior when a command is selected
+        if (props.event.key === "Enter") {
+          props.event.preventDefault();
+          return reactRenderer?.ref?.onKeyDown?.(props) ?? true;
+        }
         return reactRenderer?.ref?.onKeyDown?.(props) ?? false;
       },
 
