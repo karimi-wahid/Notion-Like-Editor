@@ -15,7 +15,7 @@ import {
   FiFile,
   FiBookmark,
 } from "react-icons/fi";
-import CommandList from "./CommandList";
+import CommandList from "@/components/CommandList";
 import {
   FaAlignJustify,
   FaAlignLeft,

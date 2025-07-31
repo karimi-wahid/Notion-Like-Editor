@@ -22,8 +22,8 @@ import DragHandle from "@tiptap/extension-drag-handle-react";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import AIModal from "./AIModal";
 import Heading from "@tiptap/extension-heading";
-import Commands from "./Commands";
-import suggestion from "./Suggestion";
+import Commands from "@/extensions/Commands";
+import suggestion from "@/extensions/Suggestion";
 import BubbleMenus from "./BubbleMenu";
 import EmojiPopup from "./EmojiPopup";
 import InsertLinkPrompt from "./InsertLinkPrompt";
@@ -36,7 +36,7 @@ import { MdDragIndicator } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import TextAlign from "@tiptap/extension-text-align";
 import { Color } from "@tiptap/extension-text-style";
-import ContextMenu from "./ContextMenu";
+//import ContextMenu from "./ContextMenu";
 import ImageUploadBox from "./ImageUploadBox";
 import ImageResize from "tiptap-extension-resize-image";
 import TableControls from "./TableControls";
@@ -103,6 +103,7 @@ const TextEditor = () => {
         suggestion,
       }),
       Image,
+      ImageResize,
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -436,7 +437,6 @@ const TextEditor = () => {
             setShowColMenu={setShowColMenu}
           />
         )}
-        <TableBubbleMenu editor={editor} />
       </div>
 
       {/* Scroll button fixed bottom center */}

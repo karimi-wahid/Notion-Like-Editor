@@ -102,6 +102,8 @@
   width: 100%;
   border-collapse: collapse;
   overflow-x: auto;
+  background-color: white;
+  z-index: 100;
 }
 
 .ProseMirror th,

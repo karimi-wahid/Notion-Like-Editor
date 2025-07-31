@@ -20,60 +20,22 @@ import {
   MdTableChart,
   MdTableRows,
 } from "react-icons/md";
+import { CgMenuGridO } from "react-icons/cg";
 import { HiMiniWrenchScrewdriver } from "react-icons/hi2";
 const TableDropdownMenu = ({ editor }: { editor: any }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Compute position above table
-  useEffect(() => {
-    const updatePosition = () => {
-      if (!editor || !editor.isActive("table")) return;
-
-      const table = document.querySelector("table");
-      const editorEl = document.querySelector(".ProseMirror");
-      if (!table || !editorEl) return;
-
-      const tableRect = table.getBoundingClientRect();
-      const editorRect = editorEl.getBoundingClientRect();
-
-      setPosition({
-        top: tableRect.top - editorRect.top - 10 + editorEl.scrollTop,
-        left: tableRect.left - editorRect.left + editorEl.scrollLeft,
-      });
-    };
-
-    updatePosition();
-
-    editor?.on("selectionUpdate", updatePosition);
-    editor?.on("transaction", updatePosition);
-
-    window.addEventListener("scroll", updatePosition, true);
-    window.addEventListener("resize", updatePosition);
-
-    return () => {
-      editor?.off("selectionUpdate", updatePosition);
-      editor?.off("transaction", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-      window.removeEventListener("resize", updatePosition);
-    };
-  }, [editor]);
-
   if (!editor || !editor.isActive("table")) return null;
 
   return (
-    <div
-      className="absolute z-50"
-      style={{
-        top: `${position.top}px`,
-        right: `${position.left}px`,
-      }}>
+    <div className="absolute z-50">
       {/* Dropdown Trigger Button */}
       <button
         onClick={() => setShowMenu((prev) => !prev)}
         className="bg-white mt-[-20px] border border-slate-200 shadow-sm p-1 rounded hover:bg-gray-100 transition">
-        ⚙️ Table Options
+        <CgMenuGridO />
       </button>
 
       {/* Dropdown Menu */}
