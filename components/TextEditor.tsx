@@ -1,8 +1,16 @@
 "use client";
+
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
-import { Table } from "@tiptap/extension-table";
+import { TableKit } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
@@ -11,12 +19,11 @@ import { Placeholder } from "@tiptap/extensions";
 import Emoji, { gitHubEmojis } from "@tiptap/extension-emoji";
 import Highlight from "@tiptap/extension-highlight";
 import DragHandle from "@tiptap/extension-drag-handle-react";
-import React, { useEffect, useRef, useState } from "react";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import AIModal from "./AIModal";
 import Heading from "@tiptap/extension-heading";
-import Commands from "@/extensions/Commands";
-import suggestion from "@/extensions/Suggestion";
+import Commands from "./Commands";
+import suggestion from "./Suggestion";
 import BubbleMenus from "./BubbleMenu";
 import EmojiPopup from "./EmojiPopup";
 import InsertLinkPrompt from "./InsertLinkPrompt";
@@ -29,7 +36,10 @@ import { MdDragIndicator } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import TextAlign from "@tiptap/extension-text-align";
 import { Color } from "@tiptap/extension-text-style";
-import { GiRobotGolem } from "react-icons/gi";
+import ContextMenu from "./ContextMenu";
+import ImageUploadBox from "./ImageUploadBox";
+import ImageResize from "tiptap-extension-resize-image";
+import TableControls from "./TableControls";
 
 const TextEditor = () => {
   const [isEditable, setIsEditable] = useState(true);
@@ -40,6 +50,10 @@ const TextEditor = () => {
   const scrollButtonRef = useRef<HTMLButtonElement | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editorWidth, setEditorWidth] = useState<number>(0);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [aiModalPosition, setAiModalPosition] = useState<{
     x: number;
     y: number;
@@ -54,6 +68,14 @@ const TextEditor = () => {
     type: "image" | "video" | "audio" | "file" | "link";
   }>(null);
 
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [hoveredCol, setHoveredCol] = useState<number | null>(null);
+  const [tableRect, setTableRect] = useState<DOMRect | null>(null);
+  const [tableRows, setTableRows] = useState(0);
+  const [tableCols, setTableCols] = useState(0);
+  const [showRowMenu, setShowRowMenu] = useState(false);
+  const [showColMenu, setShowColMenu] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -65,7 +87,7 @@ const TextEditor = () => {
       TaskList,
       TaskItem.configure({ nested: true }),
       Gapcursor,
-      Table.configure({ table: { resizable: true } }),
+      TableKit.configure({ table: { resizable: true } }),
       TableRow,
       TableHeader,
       TableCell,
@@ -140,7 +162,6 @@ const TextEditor = () => {
     if (editor) editor.setEditable(isEditable);
   }, [isEditable, editor]);
 
-  // set editor width on mount and window resize
   useEffect(() => {
     function updateWidth() {
       const rect = editorContainerRef.current?.getBoundingClientRect();
@@ -173,7 +194,6 @@ const TextEditor = () => {
       window.removeEventListener("open-insert-link", handler as EventListener);
   }, []);
 
-  // Intersection Observer to control scroll button visibility
   useEffect(() => {
     if (!showAIModal || !aiBoxRef.current) {
       setShowScrollButton(false);
@@ -197,6 +217,88 @@ const TextEditor = () => {
     };
   }, [showAIModal, aiBoxRef.current]);
 
+  /// Table Controls ///
+  // Handle table hover and calculate table dimensions
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!editor?.isActive("table")) {
+        setHoveredRow(null);
+        setHoveredCol(null);
+        setTableRect(null);
+        return;
+      }
+
+      const target = e.target as HTMLElement;
+      const cell = target.closest("th, td");
+      const table = target.closest("table");
+
+      if (!cell || !table) {
+        setHoveredRow(null);
+        setHoveredCol(null);
+        return;
+      }
+
+      const rect = table.getBoundingClientRect();
+      setTableRect(rect);
+
+      // Calculate row and column counts
+      const rows = Array.from(table.querySelectorAll("tr"));
+      const rowIndex = rows.findIndex((row) => row.contains(cell));
+      if (rowIndex === -1) return;
+
+      const cells = Array.from(rows[rowIndex].querySelectorAll("th, td"));
+      const cellIndex = cells.findIndex((c) => c === cell);
+      if (cellIndex === -1) return;
+
+      setTableRows(rows.length);
+      setTableCols(cells.length);
+      setHoveredRow(rowIndex);
+      setHoveredCol(cellIndex);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => document.removeEventListener("mousemove", handleMouseMove);
+  }, [editor]);
+
+  // Table here -------------//
+  useEffect(() => {
+    if (!editor || !editorContainerRef.current) return;
+    const container = editorContainerRef.current;
+
+    function onClick(e: MouseEvent) {
+      if (!editor || !container) return;
+
+      const target = e.target as HTMLElement;
+
+      // Ignore clicks inside the table (anywhere inside)
+      if (target.closest("table")) {
+        return; // Don't add paragraph if click is inside the table
+      }
+
+      // Your existing logic to add a paragraph if clicking below the last node
+      const lastChild = container.lastElementChild;
+      if (!lastChild) return;
+
+      const rect = lastChild.getBoundingClientRect();
+      const clickY = e.clientY;
+      const isBelow = clickY > rect.bottom + 20;
+
+      const lastNode = editor.state.doc.lastChild;
+      const isLastParagraphEmpty =
+        lastNode?.type.name === "paragraph" &&
+        (lastNode?.textContent?.trim() === "" ||
+          lastNode?.textContent?.trim() === "\u200B");
+
+      if (isBelow && !isLastParagraphEmpty) {
+        editor.commands.focus("end");
+        editor.commands.enter();
+      }
+    }
+
+    container.addEventListener("click", onClick);
+    return () => container.removeEventListener("click", onClick);
+  }, [editor]);
+
   const scrollToAIBox = () => {
     aiBoxRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -218,6 +320,11 @@ const TextEditor = () => {
       : coords.bottom + 8;
     setAiModalPosition({ x: 0, y });
     setShowAIModal(true);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   return (
@@ -251,7 +358,13 @@ const TextEditor = () => {
           title="Insert slash command">
           <FaPlus size={15} />
         </button>
-        <MdDragIndicator size={20} className="text-gray-400" />
+        <button
+          type="button"
+          onClick={handleContextMenu}
+          className="text-gray-400 hover:bg-gray-100 rounded transition cursor-pointer"
+          title="Block options">
+          <MdDragIndicator size={20} />
+        </button>
       </DragHandle>
       <div className="relative w-fit mx-auto">
         {showAIModal && aiModalPosition && (
@@ -292,9 +405,6 @@ const TextEditor = () => {
                 case "audio":
                   chain.insertContent(`<audio controls src="${url}" />`).run();
                   break;
-                case "image":
-                  chain.setImage({ src: url }).run();
-                  break;
                 case "file":
                   chain
                     .insertContent(
@@ -311,6 +421,21 @@ const TextEditor = () => {
             onClose={() => setPrompt(null)}
           />
         )}
+        <ImageUploadBox editor={editor} />
+        {/* Table Controls */}
+        {tableRect && (
+          <TableControls
+            editor={editor}
+            editorContainerRef={editorContainerRef}
+            hoveredRow={hoveredRow}
+            hoveredCol={hoveredCol}
+            tableRect={tableRect}
+            tableRows={tableRows}
+            tableCols={tableCols}
+            setShowRowMenu={setShowRowMenu}
+            setShowColMenu={setShowColMenu}
+          />
+        )}
         <TableBubbleMenu editor={editor} />
       </div>
 
@@ -320,8 +445,16 @@ const TextEditor = () => {
           ref={scrollButtonRef}
           onClick={scrollToAIBox}
           className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9999] bg-blue-600 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-700 transition">
-          <GiRobotGolem /> AI
+          Take me to AI Box
         </button>
+      )}
+
+      {contextMenu && (
+        <div
+          className="absolute z-50"
+          style={{ top: contextMenu.y, right: contextMenu.x }}>
+          <ContextMenu editor={editor} setContextMenu={setContextMenu} />
+        </div>
       )}
     </div>
   );

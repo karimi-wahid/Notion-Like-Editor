@@ -15,7 +15,7 @@ import {
   FiFile,
   FiBookmark,
 } from "react-icons/fi";
-import CommandList from "@/components/CommandList";
+import CommandList from "./CommandList";
 import {
   FaAlignJustify,
   FaAlignLeft,
@@ -25,7 +25,6 @@ import {
 } from "react-icons/fa";
 import { LuHeading1, LuHeading2, LuHeading3 } from "react-icons/lu";
 import {
-  MdBarChart,
   MdFormatListBulleted,
   MdFormatListNumbered,
   MdOutlineSubscript,
@@ -318,7 +317,7 @@ export default {
             command: ({ editor, range }: any) => {
               editor.chain().focus().deleteRange(range).run();
               window.dispatchEvent(
-                new CustomEvent("open-insert-link", {
+                new CustomEvent("open-image-upload", {
                   detail: { editor, range, type: "image" },
                 })
               );
@@ -397,7 +396,11 @@ export default {
                 .chain()
                 .focus()
                 .deleteRange(range)
-                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .insertTable({
+                  rows: 2,
+                  cols: 2,
+                  withHeaderRow: true,
+                })
                 .run();
             },
           },
