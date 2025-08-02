@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
@@ -36,7 +30,7 @@ import { MdDragIndicator } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import TextAlign from "@tiptap/extension-text-align";
 import { Color } from "@tiptap/extension-text-style";
-//import ContextMenu from "./ContextMenu";
+import ContextMenu from "./ContextMenu";
 import ImageUploadBox from "./ImageUploadBox";
 import ImageResize from "tiptap-extension-resize-image";
 import TableControls from "./TableControls";
@@ -67,6 +61,8 @@ const TextEditor = () => {
     range: { from: number; to: number };
     type: "image" | "video" | "audio" | "file" | "link";
   }>(null);
+
+  const [imageUploadData, setImageUploadData] = useState(false);
 
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [hoveredCol, setHoveredCol] = useState<number | null>(null);
@@ -149,15 +145,56 @@ const TextEditor = () => {
       Subscript,
       Superscript,
     ],
-    immediatelyRender: false,
-    content: "<p>Hello World! 🌎️</p>",
     editorProps: {
       attributes: {
         class:
           "tiptap-block-gap min-h-[500px] w-[800px] border border-slate-300 rounded-md outline-none py-2 px-3 overflow-x-auto max-w-full",
       },
     },
+    content: "<p>Hello World! 🌎️</p>",
+    immediatelyRender: false,
+    onUpdate: ({ editor }) => {
+      const view = editor.view;
+      const dom = view.dom as HTMLElement;
+      const table = dom.querySelector("table");
+      if (table) {
+        const rect = table.getBoundingClientRect();
+        setTableRect(rect);
+        setTableRows(table.querySelectorAll("tr").length);
+        setTableCols(table.querySelectorAll("tr")[0]?.children.length || 0);
+      } else {
+        setTableRect(null);
+      }
+    },
   });
+
+  // Table //
+
+  const handleMouseOver = useCallback(
+    (e: MouseEvent) => {
+      const table = editor?.view.dom.querySelector("table");
+      if (!table) return;
+
+      const rows = Array.from(table.querySelectorAll("tr"));
+      const rect = table.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const cellWidth = rect.width / (rows[0]?.children.length || 1);
+      const cellHeight = rect.height / rows.length;
+
+      setHoveredCol(Math.floor(x / cellWidth));
+      setHoveredRow(Math.floor(y / cellHeight));
+    },
+    [editor]
+  );
+
+  useEffect(() => {
+    document.addEventListener("mousemove", handleMouseOver);
+    return () => document.removeEventListener("mousemove", handleMouseOver);
+  }, [handleMouseOver]);
+
+  // table //
 
   useEffect(() => {
     if (editor) editor.setEditable(isEditable);
@@ -422,21 +459,23 @@ const TextEditor = () => {
             onClose={() => setPrompt(null)}
           />
         )}
-        <ImageUploadBox editor={editor} />
+        {imageUploadData && <ImageUploadBox editor={editor} />}
+
         {/* Table Controls */}
-        {tableRect && (
+        {editor && (
           <TableControls
             editor={editor}
             editorContainerRef={editorContainerRef}
-            hoveredRow={hoveredRow}
-            hoveredCol={hoveredCol}
             tableRect={tableRect}
             tableRows={tableRows}
             tableCols={tableCols}
             setShowRowMenu={setShowRowMenu}
             setShowColMenu={setShowColMenu}
+            hoveredRow={hoveredRow}
+            hoveredCol={hoveredCol}
           />
         )}
+        <TableBubbleMenu editor={editor} />
       </div>
 
       {/* Scroll button fixed bottom center */}

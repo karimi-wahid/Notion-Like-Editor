@@ -1,12 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  FiChevronLeft,
-  FiChevronRight,
-  FiTrash,
-  FiArrowUp,
-  FiArrowDown,
-  FiColumns,
-} from "react-icons/fi";
+import { useState, useRef } from "react";
+import { FiColumns } from "react-icons/fi";
 import {
   BiTable,
   BiMerge,
@@ -14,8 +7,6 @@ import {
   BiSolidPaint,
 } from "react-icons/bi";
 import {
-  MdOutlineNavigateBefore,
-  MdOutlineNavigateNext,
   MdOutlineTableRestaurant,
   MdTableChart,
   MdTableRows,
@@ -24,13 +15,12 @@ import { CgMenuGridO } from "react-icons/cg";
 import { HiMiniWrenchScrewdriver } from "react-icons/hi2";
 const TableDropdownMenu = ({ editor }: { editor: any }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
 
   if (!editor || !editor.isActive("table")) return null;
 
   return (
-    <div className="absolute z-50">
+    <div className="absolute z-50 right-0">
       {/* Dropdown Trigger Button */}
       <button
         onClick={() => setShowMenu((prev) => !prev)}
@@ -43,44 +33,6 @@ const TableDropdownMenu = ({ editor }: { editor: any }) => {
         <div
           ref={menuRef}
           className="mt-2 bg-white shadow-2xl border border-slate-200 rounded-md p-3 w-[250px] flex flex-col gap-2 max-h-[300px] overflow-y-auto scroll">
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().addColumnBefore().run()}>
-            <FiChevronLeft className="inline-block mr-1" /> Add column before
-          </button>
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().addColumnAfter().run()}>
-            <FiChevronRight className="inline-block mr-1" /> Add column after
-          </button>
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().deleteColumn().run()}>
-            <FiTrash className="inline-block mr-1" /> Delete column
-          </button>
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().addRowBefore().run()}>
-            <FiArrowUp className="inline-block mr-1" /> Add row before
-          </button>
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().addRowAfter().run()}>
-            <FiArrowDown className="inline-block mr-1" /> Add row after
-          </button>
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().deleteRow().run()}>
-            <FiTrash className="inline-block mr-1" /> Delete row
-          </button>
-          <button
-            className="btnTable text-red-500"
-            onClick={() => {
-              editor.chain().focus().deleteTable().run();
-              setShowMenu(false);
-            }}>
-            <BiTable className="inline-block mr-1" /> Delete table
-          </button>
           <button
             className="btnTable"
             onClick={() => editor.chain().focus().mergeCells().run()}>
@@ -126,16 +78,12 @@ const TableDropdownMenu = ({ editor }: { editor: any }) => {
             <HiMiniWrenchScrewdriver className="inline-block mr-1" /> Fix tables
           </button>
           <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().goToNextCell().run()}>
-            <MdOutlineNavigateNext className="inline-block mr-1" /> Go to next
-            cell
-          </button>
-          <button
-            className="btnTable"
-            onClick={() => editor.chain().focus().goToPreviousCell().run()}>
-            <MdOutlineNavigateBefore className="inline-block mr-1" /> Go to
-            previous cell
+            className="btnTable text-red-500"
+            onClick={() => {
+              editor.chain().focus().deleteTable().run();
+              setShowMenu(false);
+            }}>
+            <BiTable className="inline-block mr-1" /> Delete table
           </button>
         </div>
       )}
