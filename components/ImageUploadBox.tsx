@@ -1,28 +1,45 @@
 "use client";
 
-import type React from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-
 import { FiImage, FiUpload, FiLink, FiSearch } from "react-icons/fi";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 
 export default function ImageUploadBox({ editor }: { editor: Editor | null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
   const [url, setUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsOpen(false);
     addImage();
+    console.log("image url", url);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      setUrl(objectUrl);
+    }
   };
 
   const addImage = useCallback(() => {
     if (url) {
       editor?.chain().focus().setImage({ src: url }).run();
     }
-  }, [editor]);
+  }, [editor, url]);
 
   const TabButton = ({
     value,
@@ -43,8 +60,7 @@ export default function ImageUploadBox({ editor }: { editor: Editor | null }) {
             ? "rounded-tr-none rounded-bl-none rounded-br-none"
             : ""
         }
-        ${value !== "upload" ? "rounded-none" : ""}
-      `}
+        ${value !== "upload" ? "rounded-none" : ""}`}
       onClick={() => setActiveTab(value)}
       type="button">
       {children}
@@ -82,8 +98,21 @@ export default function ImageUploadBox({ editor }: { editor: Editor | null }) {
                     id="file-upload"
                     type="file"
                     accept="image/*"
+                    onChange={handleImageChange}
                     className="hidden"
                   />
+                  {previewUrl && (
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="max-w-xs rounded-md border"
+                    />
+                  )}
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md py-3 text-base transition-colors duration-200">
+                    Insert image
+                  </button>
                   <p className="text-sm text-gray-500">
                     The maximum size per file is 5 MB.
                   </p>

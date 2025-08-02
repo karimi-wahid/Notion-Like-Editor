@@ -13,6 +13,7 @@ import {
 } from "react-icons/md";
 import { CgMenuGridO } from "react-icons/cg";
 import { HiMiniWrenchScrewdriver } from "react-icons/hi2";
+
 const TableDropdownMenu = ({ editor }: { editor: any }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -20,11 +21,13 @@ const TableDropdownMenu = ({ editor }: { editor: any }) => {
   if (!editor || !editor.isActive("table")) return null;
 
   return (
-    <div className="absolute z-50 right-0">
+    <div className="relative inline-block">
       {/* Dropdown Trigger Button */}
       <button
         onClick={() => setShowMenu((prev) => !prev)}
-        className="bg-white mt-[-20px] border border-slate-200 shadow-sm p-1 rounded hover:bg-gray-100 transition">
+        className="bg-white mt-[-20px] border border-slate-200 p-1 cursor-pointer rounded hover:bg-gray-100 transition"
+        aria-expanded={showMenu}
+        aria-haspopup="true">
         <CgMenuGridO />
       </button>
 
@@ -32,7 +35,7 @@ const TableDropdownMenu = ({ editor }: { editor: any }) => {
       {showMenu && (
         <div
           ref={menuRef}
-          className="mt-2 bg-white shadow-2xl border border-slate-200 rounded-md p-3 w-[250px] flex flex-col gap-2 max-h-[300px] overflow-y-auto scroll">
+          className="absolute left-0 top-full mt-1 bg-white shadow-2xl border border-slate-200 rounded-md p-3 w-[250px] flex flex-col gap-2 max-h-[300px] overflow-y-auto scroll z-50">
           <button
             className="btnTable"
             onClick={() => editor.chain().focus().mergeCells().run()}>

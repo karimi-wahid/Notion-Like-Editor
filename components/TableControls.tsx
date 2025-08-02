@@ -10,6 +10,7 @@ import {
   FaLongArrowAltUp,
 } from "react-icons/fa";
 import { RiDeleteBin3Line } from "react-icons/ri";
+import TableBubbleMenu from "./TableBubbleMenu";
 
 const TableControls = ({
   editor,
@@ -184,12 +185,18 @@ const TableControls = ({
             }}>
             <div className="relative z-40 group">
               {colIndex === tableCols - 1 ? (
-                <button
-                  onClick={() => editor.chain().focus().addColumnAfter().run()}
-                  className="p-1 bg-white border border-gray-200 hover:bg-gray-100 rounded-full transition-transform hover:scale-110 cursor-pointer"
-                  title="Add column right">
-                  <PiPlus size={16} />
-                </button>
+                <div className="flex items-center space-x-3 justify-between">
+                  <button
+                    onClick={() =>
+                      editor.chain().focus().addColumnAfter().run()
+                    }
+                    className="p-1 bg-white border border-gray-200 hover:bg-gray-100 rounded-full transition-transform hover:scale-110 cursor-pointer"
+                    title="Add column right">
+                    <PiPlus size={16} />
+                  </button>
+
+                  <TableBubbleMenu editor={editor} />
+                </div>
               ) : (
                 <div className="relative group">
                   <button

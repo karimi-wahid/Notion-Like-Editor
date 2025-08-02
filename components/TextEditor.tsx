@@ -59,7 +59,7 @@ const TextEditor = () => {
   const [prompt, setPrompt] = useState<null | {
     editor: any;
     range: { from: number; to: number };
-    type: "image" | "video" | "audio" | "file" | "link";
+    type: "video" | "audio" | "file" | "link";
   }>(null);
 
   const [imageUploadData, setImageUploadData] = useState(false);
@@ -230,6 +230,15 @@ const TextEditor = () => {
     window.addEventListener("open-insert-link", handler as EventListener);
     return () =>
       window.removeEventListener("open-insert-link", handler as EventListener);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      setImageUploadData({ editor: e.detail.editor });
+    };
+    window.addEventListener("open-image-upload", handler as EventListener);
+    return () =>
+      window.removeEventListener("open-image-upload", handler as EventListener);
   }, []);
 
   useEffect(() => {
@@ -475,7 +484,6 @@ const TextEditor = () => {
             hoveredCol={hoveredCol}
           />
         )}
-        <TableBubbleMenu editor={editor} />
       </div>
 
       {/* Scroll button fixed bottom center */}
