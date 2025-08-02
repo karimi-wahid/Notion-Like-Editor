@@ -63,6 +63,7 @@ const TextEditor = () => {
   }>(null);
 
   const [imageUploadData, setImageUploadData] = useState(false);
+  const imageUploadRef = useRef<HTMLDivElement | null>(null);
 
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [hoveredCol, setHoveredCol] = useState<number | null>(null);
@@ -374,6 +375,26 @@ const TextEditor = () => {
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
+  // hide imageupload box when clicing outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        imageUploadRef.current &&
+        !imageUploadRef.current.contains(event.target as Node)
+      ) {
+        setImageUploadData(false);
+      }
+    }
+
+    if (imageUploadData) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [imageUploadData]);
+
   return (
     <div>
       {editor && (
@@ -468,7 +489,14 @@ const TextEditor = () => {
             onClose={() => setPrompt(null)}
           />
         )}
-        {imageUploadData && <ImageUploadBox editor={editor} />}
+        {imageUploadData && (
+          <div ref={imageUploadRef}>
+            <ImageUploadBox
+              editor={editor}
+              setImageUploadData={setImageUploadData}
+            />
+          </div>
+        )}
 
         {/* Table Controls */}
         {editor && (

@@ -5,7 +5,13 @@ import Image from "next/image";
 import { FiImage, FiUpload, FiLink, FiSearch } from "react-icons/fi";
 import type { Editor } from "@tiptap/core";
 
-export default function ImageUploadBox({ editor }: { editor: Editor | null }) {
+export default function ImageUploadBox({
+  editor,
+  setImageUploadData,
+}: {
+  editor: Editor | null;
+  setImageUploadData: (data: boolean) => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
   const [url, setUrl] = useState("");
@@ -24,6 +30,10 @@ export default function ImageUploadBox({ editor }: { editor: Editor | null }) {
     setIsOpen(false);
     addImage();
     console.log("image url", url);
+    setUrl("");
+    setPreviewUrl(null);
+    setActiveTab("upload");
+    setImageUploadData(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +78,9 @@ export default function ImageUploadBox({ editor }: { editor: Editor | null }) {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full absolute z-50 top-[40%] left-[50%] -translate-x-1/2">
       <div className="w-full max-w-md">
         {!isOpen ? (
           <button
