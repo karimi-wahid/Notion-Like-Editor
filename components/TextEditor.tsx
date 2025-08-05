@@ -42,6 +42,7 @@ import ImageUploadBox from "./ImageUploadBox";
 import ImageResize from "tiptap-extension-resize-image";
 import TableControls from "./TableControls";
 import { NodeSelection } from "prosemirror-state";
+import { HiOutlineSparkles } from "react-icons/hi";
 
 const TextEditor = forwardRef(
   (
@@ -76,7 +77,7 @@ const TextEditor = forwardRef(
     const [prompt, setPrompt] = useState<null | {
       editor: any;
       range: { from: number; to: number };
-      type: "image" | "video" | "audio" | "file" | "link";
+      type: "video" | "audio" | "file" | "link";
     }>(null);
 
     const [imageUploadData, setImageUploadData] = useState(false);
@@ -438,26 +439,7 @@ const TextEditor = forwardRef(
       setShowAIModal(true);
     };
 
-    const handleContextMenu = (e: React.MouseEvent) => {
-      e.preventDefault();
-      setContextMenu({ x: e.clientX, y: e.clientY });
-    };
-
     // Context menu
-    const selectCurrentBlockNode = () => {
-      if (!editor) return;
-      const { state, view } = editor;
-      const { $from } = state.selection;
-      const pos = $from.before($from.depth);
-      const node = state.doc.nodeAt(pos);
-      if (!node) return;
-
-      const nodeSelection = NodeSelection.create(state.doc, pos);
-      const transaction = state.tr.setSelection(nodeSelection);
-      view.dispatch(transaction);
-      view.focus();
-    };
-
     function getBlockDOMNode(
       view: Editor["view"],
       pos: number
@@ -534,6 +516,8 @@ const TextEditor = forwardRef(
               const { $from } = state.selection;
               const pos = $from.start($from.depth);
               setCurrentBlockPos(pos);
+
+              editor.commands.setTextSelection(pos);
 
               const domNode = getBlockDOMNode(editor.view, pos);
               if (!domNode || !editorContainerRef.current) return;
@@ -641,12 +625,11 @@ const TextEditor = forwardRef(
             ref={scrollButtonRef}
             onClick={scrollToAIBox}
             className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9999] bg-blue-600 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-700 transition">
-            Take me to AI Box
+            <HiOutlineSparkles size={16} className="text-purple-500" />
           </button>
         )}
 
         <div ref={editorContainerRef} className="relative w-full">
-          <EditorContent editor={editor} />
           {contextMenu && currentBlockPos !== null && (
             <div
               ref={contextMenuRef}
@@ -660,6 +643,7 @@ const TextEditor = forwardRef(
                 editor={editor}
                 setContextMenu={setContextMenu}
                 currentBlockPos={currentBlockPos}
+                setShowAIModal={setShowAIModal}
               />
             </div>
           )}
