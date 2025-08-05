@@ -32,6 +32,24 @@ const ContextMenu = ({
     setContextMenu(null);
   };
 
+  const deleteCurrentBlock = () => {
+    if (!editor || currentBlockPos === null) return;
+
+    const node = editor.state.doc.nodeAt(currentBlockPos);
+    if (!node) return;
+
+    editor
+      .chain()
+      .focus()
+      .deleteRange({
+        from: currentBlockPos,
+        to: currentBlockPos + node.nodeSize,
+      })
+      .run();
+
+    setContextMenu(null);
+  };
+
   const menuItems = [
     {
       label: "Turn into",
@@ -56,7 +74,7 @@ const ContextMenu = ({
     {
       label: "Delete",
       icon: <MdDeleteOutline />,
-      action: () => alert("Delete action"),
+      action: deleteCurrentBlock,
     },
     {
       label: "Comment",
