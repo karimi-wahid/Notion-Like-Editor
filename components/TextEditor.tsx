@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { Editor, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { TableKit } from "@tiptap/extension-table";
@@ -89,6 +89,8 @@ const TextEditor = forwardRef(
     const [tableCols, setTableCols] = useState(0);
     const [showRowMenu, setShowRowMenu] = useState(false);
     const [showColMenu, setShowColMenu] = useState(false);
+
+    const [currentBlockPos, setCurrentBlockPos] = useState<number | null>(null);
 
     const editor = useEditor({
       extensions: [
@@ -456,6 +458,22 @@ const TextEditor = forwardRef(
       view.focus();
     };
 
+    function getBlockDOMNode(
+      view: Editor["view"],
+      pos: number
+    ): HTMLElement | null {
+      let dom = view.nodeDOM(pos);
+      if (!dom) return null;
+
+      // If it's a text node, go to its parent element node
+      while (dom.nodeType !== 1) {
+        dom = dom.parentNode;
+        if (!dom) return null;
+      }
+
+      return dom as HTMLElement;
+    }
+
     // outside click
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -509,11 +527,26 @@ const TextEditor = forwardRef(
           </button>
           <button
             type="button"
-            onClick={(e) => {
-              selectCurrentBlockNode();
-              handleContextMenu(e);
+            onClick={() => {
+              if (!editor) return;
+
+              const { state, view } = editor;
+              const { $from } = state.selection;
+              const pos = $from.start($from.depth);
+              setCurrentBlockPos(pos);
+
+              const domNode = getBlockDOMNode(editor.view, pos);
+              if (!domNode || !editorContainerRef.current) return;
+
+              const rect = domNode.getBoundingClientRect();
+              const containerRect =
+                editorContainerRef.current.getBoundingClientRect();
+
+              setContextMenu({
+                x: rect.left - containerRect.left,
+                y: rect.bottom - containerRect.top + 5, // +5 for some margin below
+              });
             }}
-            className="text-gray-400 hover:bg-gray-100 rounded transition cursor-pointer"
             title="Block options">
             <MdDragIndicator size={20} />
           </button>
@@ -612,14 +645,25 @@ const TextEditor = forwardRef(
           </button>
         )}
 
-        {contextMenu && (
-          <div
-            ref={contextMenuRef}
-            className="absolute z-50"
-            style={{ top: contextMenu.y + 15, left: contextMenu.x }}>
-            <ContextMenu editor={editor} setContextMenu={setContextMenu} />
-          </div>
-        )}
+        <div ref={editorContainerRef} className="relative w-full">
+          <EditorContent editor={editor} />
+          {contextMenu && currentBlockPos !== null && (
+            <div
+              ref={contextMenuRef}
+              style={{
+                position: "absolute",
+                left: contextMenu.x,
+                top: contextMenu.y,
+                zIndex: 1000,
+              }}>
+              <ContextMenu
+                editor={editor}
+                setContextMenu={setContextMenu}
+                currentBlockPos={currentBlockPos}
+              />
+            </div>
+          )}
+        </div>
       </div>
     );
   }
