@@ -82,6 +82,10 @@ const TextEditor = forwardRef(
 
     const [imageUploadData, setImageUploadData] = useState(false);
     const imageUploadRef = useRef<HTMLDivElement | null>(null);
+    const [imageUploadBoxPos, setImageUploadBoxPos] = useState<{
+      x: number;
+      y: number;
+    } | null>(null);
 
     const [hoveredRow, setHoveredRow] = useState<number | null>(null);
     const [hoveredCol, setHoveredCol] = useState<number | null>(null);
@@ -151,7 +155,7 @@ const TextEditor = forwardRef(
               return false;
             }
           },
-        }), // ✅ this closing parenthesis was missing
+        }),
         Subscript,
         Superscript,
       ],
@@ -476,6 +480,41 @@ const TextEditor = forwardRef(
       };
     }, [contextMenu]);
 
+    // imageuploadbox
+    useEffect(() => {
+      const handler = (e: CustomEvent) => {
+        const editor = e.detail.editor;
+        const view = editor.view;
+        const state = editor.state;
+        const { $from } = state.selection;
+        const blockStartPos = $from.start($from.depth);
+        const blockNode = $from.node($from.depth);
+        const blockEndPos = blockStartPos + blockNode.nodeSize - 2;
+
+        const coords = view.coordsAtPos(blockEndPos);
+        const containerRect =
+          editorContainerRef.current?.getBoundingClientRect();
+
+        const y = containerRect
+          ? coords.bottom - containerRect.top + 8
+          : coords.bottom + 8;
+
+        // Optional x if needed, you can center it or align it
+        setImageUploadBoxPos({ x: 0, y });
+
+        // Now show image upload box
+        setImageUploadData({ editor });
+      };
+
+      window.addEventListener("open-image-upload", handler as EventListener);
+      return () =>
+        window.removeEventListener(
+          "open-image-upload",
+          handler as EventListener
+        );
+    }, []);
+    const [aiContent, setAIContent] = useState("");
+
     return (
       <div>
         {editor && (
@@ -517,8 +556,6 @@ const TextEditor = forwardRef(
               const pos = $from.start($from.depth);
               setCurrentBlockPos(pos);
 
-              editor.commands.setTextSelection(pos);
-
               const domNode = getBlockDOMNode(editor.view, pos);
               if (!domNode || !editorContainerRef.current) return;
 
@@ -547,12 +584,34 @@ const TextEditor = forwardRef(
                   editorWidth={editorWidth}
                   scrollButtonRef={scrollButtonRef}
                   editor={editor}
+                  setAIContent={setAIContent}
+                  aiContent={aiContent}
                 />
               </div>
             </div>
           )}
+
           <div ref={editorContainerRef} className="relative w-full">
             <EditorContent editor={editor} />
+
+            {contextMenu && (
+              <div
+                ref={contextMenuRef}
+                style={{
+                  position: "absolute",
+                  left: contextMenu.x,
+                  top: contextMenu.y,
+                  zIndex: 1000,
+                }}>
+                <ContextMenu
+                  editor={editor}
+                  setContextMenu={setContextMenu}
+                  currentBlockPos={currentBlockPos}
+                  setShowAIModal={setShowAIModal}
+                  aiContent={aiContent}
+                />
+              </div>
+            )}
           </div>
           {emojiData && (
             <EmojiPopup
@@ -594,8 +653,11 @@ const TextEditor = forwardRef(
               onClose={() => setPrompt(null)}
             />
           )}
-          {imageUploadData && (
-            <div ref={imageUploadRef}>
+          {imageUploadData && imageUploadBoxPos && (
+            <div
+              ref={imageUploadRef}
+              className="absolute left-0 z-50 w-full"
+              style={{ top: imageUploadBoxPos.y }}>
               <ImageUploadBox
                 editor={editor}
                 setImageUploadData={setImageUploadData}
@@ -628,26 +690,6 @@ const TextEditor = forwardRef(
             <HiOutlineSparkles size={16} className="text-purple-500" />
           </button>
         )}
-
-        <div ref={editorContainerRef} className="relative w-full">
-          {contextMenu && currentBlockPos !== null && (
-            <div
-              ref={contextMenuRef}
-              style={{
-                position: "absolute",
-                left: contextMenu.x,
-                top: contextMenu.y,
-                zIndex: 1000,
-              }}>
-              <ContextMenu
-                editor={editor}
-                setContextMenu={setContextMenu}
-                currentBlockPos={currentBlockPos}
-                setShowAIModal={setShowAIModal}
-              />
-            </div>
-          )}
-        </div>
       </div>
     );
   }

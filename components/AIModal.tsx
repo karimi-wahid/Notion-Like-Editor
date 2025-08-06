@@ -8,6 +8,8 @@ interface AIModalProps {
   editorWidth: number;
   scrollButtonRef: React.RefObject<HTMLButtonElement>;
   editor: Editor | null;
+  aiContent: string;
+  setAIContent: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AIModal: React.FC<AIModalProps> = ({
@@ -15,6 +17,8 @@ const AIModal: React.FC<AIModalProps> = ({
   editorWidth,
   scrollButtonRef,
   editor,
+  aiContent,
+  setAIContent,
 }) => {
   const [inputValue, setInputValue] = useState("");
   const aiBoxRef = useRef<HTMLDivElement | null>(null);
@@ -102,6 +106,7 @@ const AIModal: React.FC<AIModalProps> = ({
     setHideAIOptions(false);
     setTimeout(() => {
       setShowWhichModal(false);
+      setAIContent("This Content has been changed by AI");
     }, 3000);
   };
 
@@ -167,7 +172,7 @@ const AIModal: React.FC<AIModalProps> = ({
       {/* Mock AI suggestion */}
       {!showWhichModal && (
         <div className="w-full px-2 py-2 bg-white text-blue-800 font-medium text-sm">
-          The Content has been changed by AI
+          {aiContent}
         </div>
       )}
 
@@ -282,7 +287,7 @@ const AIModal: React.FC<AIModalProps> = ({
         <ActionMenu
           setShowAIModal={setShowAIModal}
           editor={editor}
-          aiSuggestion={"The Content has been changed by AI"}
+          aiSuggestion={aiContent}
           onTryAgain={handleAISubmit}
         />
       )}

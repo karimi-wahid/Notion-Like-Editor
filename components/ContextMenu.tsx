@@ -13,24 +13,33 @@ const ContextMenu = ({
   setContextMenu,
   currentBlockPos,
   setShowAIModal,
+  aiContent,
 }: {
   editor: Editor;
   setContextMenu: any;
   currentBlockPos: number | null;
   setShowAIModal: React.Dispatch<React.SetStateAction<boolean>>;
+  aiContent: string;
 }) => {
   const duplicateCurrentBlock = () => {
     if (!editor || currentBlockPos === null) return;
+
     const node = editor.state.doc.nodeAt(currentBlockPos);
     if (!node) return;
 
+    // Calculate the insertion point (right after the current block)
+    const insertPos = currentBlockPos + node.nodeSize;
+
+    // Insert the duplicated block in a new line
     editor
       .chain()
       .focus()
-      .insertContentAt(currentBlockPos + node.nodeSize, node.toJSON())
+      .insertContentAt(insertPos, { type: "paragraph", content: [] }) // Force a new line (adjust if needed)
+      .insertContentAt(insertPos + 1, node.toJSON()) // Insert duplicate
+      .setTextSelection(insertPos + 2) // Focus the new block (optional)
       .run();
 
-    setContextMenu(null);
+    setContextMenu(null); // Close the context menu
   };
 
   const deleteCurrentBlock = () => {
@@ -80,6 +89,27 @@ const ContextMenu = ({
     setContextMenu(null);
   };
 
+  const replaceBlockWithAIResponse = (aiResponseContent: string) => {
+    if (!editor || currentBlockPos === null) return;
+
+    const node = editor.state.doc.nodeAt(currentBlockPos);
+    if (!node) return;
+
+    // Create a transaction that replaces the entire node at currentBlockPos
+    editor
+      .chain()
+      .focus()
+      .deleteRange({
+        from: currentBlockPos,
+        to: currentBlockPos + node.nodeSize,
+      }) // Remove the old block
+      .insertContentAt(currentBlockPos, {
+        type: "paragraph", // You can change this to match your node type
+        content: [{ type: "text", text: aiResponseContent }],
+      })
+      .run();
+  };
+
   const menuItems = [
     {
       label: "Turn into",
@@ -109,7 +139,10 @@ const ContextMenu = ({
     {
       label: "Ask AI",
       icon: <FaRobot />,
-      action: () => setShowAIModal(true),
+      action: () => {
+        setShowAIModal(true);
+        replaceBlockWithAIResponse(aiContent);
+      },
     },
   ];
 
@@ -216,7 +249,7 @@ const ContextMenu = ({
   ];
 
   return (
-    <div className="w-64 bg-white shadow-xl border border-gray-200 rounded-xl py-4 px-3 text-sm animate-fade-in">
+    <div className="w-64 bg-white shadow-xl border border-gray-200 rounded-xl py-2 p-1 text-sm animate-fade-in">
       <ul className="space-y-1">
         {menuItems.map((item, index) => (
           <li

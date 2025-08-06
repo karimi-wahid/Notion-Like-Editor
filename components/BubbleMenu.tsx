@@ -194,6 +194,20 @@ const BubbleMenus: React.FC<BubbleMenusProps> = ({
 
   if (!editor) return null;
 
+  if (!editor || !editor.state) return null;
+
+  const { from, to } = editor.state.selection;
+  let isImageSelected = false;
+
+  editor.state.doc.nodesBetween(from, to, (node) => {
+    if (node.type.name === "image") {
+      isImageSelected = true;
+      return false;
+    }
+  });
+
+  if (isImageSelected) return null;
+
   return (
     <BubbleMenu
       editor={editor}
