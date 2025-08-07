@@ -172,7 +172,11 @@ const AIModal: React.FC<AIModalProps> = ({
       {/* Mock AI suggestion */}
       {!showWhichModal && (
         <div className="w-full px-2 py-2 bg-white text-blue-800 font-medium text-sm">
-          {aiContent}
+          <div className="typer">
+            <div>
+              <p>{aiContent}</p>
+            </div>
+          </div>
         </div>
       )}
 

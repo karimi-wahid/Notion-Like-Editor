@@ -556,6 +556,16 @@ const TextEditor = forwardRef(
               const pos = $from.start($from.depth);
               setCurrentBlockPos(pos);
 
+              // ✅ Select the full block using NodeSelection
+              const node = state.doc.nodeAt(pos);
+              if (node) {
+                const transaction = state.tr.setSelection(
+                  NodeSelection.create(state.doc, pos)
+                );
+                view.dispatch(transaction);
+                view.focus();
+              }
+              // ✅ Show context menu at block position
               const domNode = getBlockDOMNode(editor.view, pos);
               if (!domNode || !editorContainerRef.current) return;
 
@@ -609,6 +619,7 @@ const TextEditor = forwardRef(
                   currentBlockPos={currentBlockPos}
                   setShowAIModal={setShowAIModal}
                   aiContent={aiContent}
+                  handleAskAIAtEndOfBlock={handleAskAIAtEndOfBlock}
                 />
               </div>
             )}

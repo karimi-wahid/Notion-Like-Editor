@@ -14,33 +14,30 @@ const ContextMenu = ({
   currentBlockPos,
   setShowAIModal,
   aiContent,
+  handleAskAIAtEndOfBlock
+  
 }: {
   editor: Editor;
   setContextMenu: any;
   currentBlockPos: number | null;
   setShowAIModal: React.Dispatch<React.SetStateAction<boolean>>;
   aiContent: string;
+  handleAskAIAtEndOfBlock: () => void
 }) => {
   const duplicateCurrentBlock = () => {
-    if (!editor || currentBlockPos === null) return;
+        if (!editor || currentBlockPos === null) return
+        const node = editor.state.doc.nodeAt(currentBlockPos)
+        if (!node) return
 
-    const node = editor.state.doc.nodeAt(currentBlockPos);
-    if (!node) return;
+        editor
+            .chain()
+            .focus()
+            .splitBlock()
+            .insertContent(node?.text)
+            .run()
 
-    // Calculate the insertion point (right after the current block)
-    const insertPos = currentBlockPos + node.nodeSize;
-
-    // Insert the duplicated block in a new line
-    editor
-      .chain()
-      .focus()
-      .insertContentAt(insertPos, { type: "paragraph", content: [] }) // Force a new line (adjust if needed)
-      .insertContentAt(insertPos + 1, node.toJSON()) // Insert duplicate
-      .setTextSelection(insertPos + 2) // Focus the new block (optional)
-      .run();
-
-    setContextMenu(null); // Close the context menu
-  };
+        setContextMenu(null)
+    }
 
   const deleteCurrentBlock = () => {
     if (!editor || currentBlockPos === null) return;
@@ -142,6 +139,7 @@ const ContextMenu = ({
       action: () => {
         setShowAIModal(true);
         replaceBlockWithAIResponse(aiContent);
+        handleAskAIAtEndOfBlock()
       },
     },
   ];

@@ -148,3 +148,34 @@
   outline-offset: 2px;
   border-radius: 0.375rem;
 }
+
+/* Typer Effect Style */
+
+.typer p {
+  overflow: hidden;
+  border-right: 0.15em solid gray;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: 0.15em;
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: orange;
+  }
+}
