@@ -52,6 +52,7 @@
   pointer-events: none;
   height: 0;
   display: block;
+  position: absolute;
 }
 
 /* Tiptap table base styles */
@@ -61,6 +62,9 @@
   margin: 1rem 0;
   background: #fff;
   table-layout: fixed; /* Required for resizing */
+
+  position: relative;
+  z-index: 1;
 }
 
 .ProseMirror th,
