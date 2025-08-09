@@ -33,52 +33,54 @@ const TableControls = ({
     if (!editor) return;
 
     const updateFocus = () => {
-      if (!editor.isActive("table")) {
-        setFocusedRow(null);
-        setFocusedCol(null);
-        return;
-      }
-
-      const { state } = editor;
-      const $anchor = state.selection.$anchor;
-      let depth = $anchor.depth;
-
-      while (depth > 0) {
-        const node = $anchor.node(depth);
-        if (
-          node.type.name === "tableCell" ||
-          node.type.name === "tableHeader"
-        ) {
-          const rowNode = $anchor.node(depth - 1);
-          const tableNode = $anchor.node(depth - 2);
-
-          const rowIndex = tableNode.content.findIndex(
-            (child) => child === rowNode
-          );
-          const colIndex = rowNode.content.findIndex((child) => child === node);
-
-          setFocusedRow(rowIndex);
-          setFocusedCol(colIndex);
+      try {
+        if (!editor.isActive("table")) {
+          setFocusedRow(null);
+          setFocusedCol(null);
           return;
         }
-        depth--;
+
+        const { state } = editor;
+        const $anchor = state.selection.$anchor;
+
+        // walk ancestors from deepest to top
+        for (let d = $anchor.depth; d > 0; d--) {
+          const node = $anchor.node(d);
+          if (
+            node.type.name === "tableCell" ||
+            node.type.name === "tableHeader"
+          ) {
+            // use index() to get row/col without touching ancestor nodes directly
+            const rowIndex = $anchor.index(d - 1);
+            const colIndex = $anchor.index(d);
+
+            setFocusedRow(rowIndex);
+            setFocusedCol(colIndex);
+            return;
+          }
+        }
+
+        setFocusedRow(null);
+        setFocusedCol(null);
+      } catch (err) {
+        console.warn("updateFocus failed:", err);
+        setFocusedRow(null);
+        setFocusedCol(null);
       }
-
-      setFocusedRow(null);
-      setFocusedCol(null);
-    };
-
-    const clearFocus = () => {
-      setFocusedRow(null);
-      setFocusedCol(null);
     };
 
     editor.on("selectionUpdate", updateFocus);
-    editor.on("blur", clearFocus);
+    editor.on("blur", () => {
+      setFocusedRow(null);
+      setFocusedCol(null);
+    });
+
+    // initial sync
+    updateFocus();
 
     return () => {
       editor.off("selectionUpdate", updateFocus);
-      editor.off("blur", clearFocus);
+      editor.off("blur", () => {});
     };
   }, [editor]);
 

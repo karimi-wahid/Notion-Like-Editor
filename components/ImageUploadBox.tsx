@@ -18,7 +18,7 @@ export default function ImageUploadBox({
   );
   const [url, setUrl] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [search, setSearch] = useState("nature");
+  const [search, setSearch] = useState("");
   const [pexelsImages, setPexelsImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,6 +33,13 @@ export default function ImageUploadBox({
       setLoading(false);
     }
   };
+
+  // Load default Pexels images when switching to Pexels tab
+  useEffect(() => {
+    if (isOpen) {
+      fetchPexelsImages();
+    }
+  }, []);
 
   // Add resizable image
   const addResizableImage = useCallback(
@@ -196,7 +203,7 @@ export default function ImageUploadBox({
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                         {pexelsImages.map((photo: any) => (
                           <div
                             key={photo.id}
