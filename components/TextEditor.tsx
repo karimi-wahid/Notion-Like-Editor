@@ -40,9 +40,11 @@ import { Color } from "@tiptap/extension-text-style";
 import ContextMenu from "./ContextMenu";
 import ImageUploadBox from "./ImageUploadBox";
 import ImageResize from "tiptap-extension-resize-image";
+import { ResizableImage } from "tiptap-extension-resizable-image";
 import TableControls from "./TableControls";
 import { NodeSelection } from "prosemirror-state";
 import { HiOutlineSparkles } from "react-icons/hi";
+import "tiptap-extension-resizable-image/styles.css";
 
 const TextEditor = forwardRef(
   (
@@ -124,7 +126,10 @@ const TextEditor = forwardRef(
           suggestion,
         }),
         Image,
-        ImageResize,
+        ResizableImage.configure({
+          defaultWidth: 200,
+          defaultHeight: 200,
+        }),
         Link.configure({
           openOnClick: false,
           autolink: true,
